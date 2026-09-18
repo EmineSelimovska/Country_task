@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import type { Country as CountryType } from "../types/country";
 import Country from "./Country";
 
-
 function CountryList() {
   const [counties, setCountries] = useState<CountryType[]>([]);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,6 +33,22 @@ function CountryList() {
     fetchCountry();
   }, []);
 
+  const filterCountries = counties.filter((cont) =>
+    cont.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  const visiableCountries = filterCountries.slice(0, 12);
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+
+    setSearchInput(value);
+
+    if (value.trim() === "") {
+      setSearchTerm("");
+    }
+  };
+
   if (loading) {
     return <p>Loading countries…</p>;
   }
@@ -41,10 +58,19 @@ function CountryList() {
       <header>
         <button>Toggle</button>
 
-        <form>
+        <form
+          onClick={(e) => {
+            e.preventDefault();
+            setSearchTerm(searchInput);
+          }}
+        >
           <div>
-            <label htmlFor="continent-search">Search by continent name</label>
-            <input type="search" />
+            <label htmlFor="continent-search">Search by name</label>
+            <input
+              type="search"
+              value={searchInput}
+              onChange={handleSearchChange}
+            />
           </div>
 
           <button type="submit">Search</button>
@@ -55,8 +81,8 @@ function CountryList() {
         <article>
           {error ? (
             <p>{error}</p>
-          ) : counties.length > 0 ? (
-            counties.map((cont) => <Country key={cont.id} {...cont} />)
+          ) : visiableCountries.length > 0 ? (
+            visiableCountries.map((cont) => <Country key={cont.id} {...cont} />)
           ) : (
             <p>No countries found.</p>
           )}
