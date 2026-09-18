@@ -1,5 +1,4 @@
 export type Country = {
-  id: number;
   name: string;
   shortInfo: string;
   image: string;
