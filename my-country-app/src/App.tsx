@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
+import CountryList from "./components/CountryList"
 
 function App() {
 
@@ -7,7 +8,7 @@ function App() {
     <>
     <BrowserRouter>
     <Routes>
-      <Route path="/"/>
+      <Route path="/" element={<CountryList/>}/>
     </Routes>
     </BrowserRouter>
     </>
