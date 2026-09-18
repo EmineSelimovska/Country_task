@@ -8,6 +8,9 @@ function CountryList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+ return localStorage.getItem("theme") === "dark"
+})
 
   useEffect(() => {
     const fetchCountry = async () => {
@@ -33,6 +36,12 @@ function CountryList() {
     fetchCountry();
   }, []);
 
+  useEffect(() => {
+   document.documentElement.classList.toggle("dark", darkMode);
+
+   localStorage.setItem("theme", darkMode ? "dark" : "light")
+  }, [darkMode])
+
   const filterCountries = counties.filter((cont) =>
     cont.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
@@ -54,9 +63,20 @@ function CountryList() {
   }
 
   return (
-    <div>
+    <div 
+    className={
+      darkMode ? 
+      "min-h-screen bg-white text-black" :
+      "min-h-screen bg-black text-white"
+    }
+    >
       <header>
-        <button>Toggle</button>
+        <button 
+        type="button"
+        onClick={() => setDarkMode((prev) => !prev)}>
+            
+            {darkMode ? "Light mode" : "Dark mode"}
+            </button>
 
         <form
           onClick={(e) => {
