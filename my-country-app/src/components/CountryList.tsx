@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState } from "react";
 import type { Country as CountryType } from "../types/country";
 import Country from "./Country";
 
@@ -13,18 +13,22 @@ function CountryList() {
     return localStorage.getItem("theme") === "dark";
   });
 
+  const getCountries = async (): Promise<CountryType[]> => {
+    const response = await fetch("/api/countries.json");
+
+    if (!response.ok) {
+      throw new Error("Request is not successful.");
+    }
+
+    return response.json();
+  };
+
   const fetchCountry = async () => {
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch("/api/countries.json");
-
-      if (!response.ok) {
-        throw new Error("Request is not successful.");
-      }
-
-      const data: CountryType[] = await response.json();
+      const data = await getCountries();
       setCountries(data);
     } catch (error) {
       console.error("Request failed", error);
@@ -35,11 +39,33 @@ function CountryList() {
   };
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadCountries = async () => {
-      await fetchCountry();
+      try {
+        const data = await getCountries();
+
+        if (!cancelled) {
+          setCountries(data);
+        }
+      } catch (error) {
+        console.error("Request failed", error);
+
+        if (!cancelled) {
+          setError("Something went wrong. Try again.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
     };
 
     loadCountries();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -71,32 +97,32 @@ function CountryList() {
     }
   };
 
- 
-if (loading) {
-  return (
-    <div
-      className={`flex min-h-screen flex-col items-center justify-center gap-4 px-4 ${
-        darkMode ? "bg-black text-white" : "bg-white text-gray-900"
-      }`}
-      aria-busy="true"
-    >
+  const continents = [
+    ...new Set(countries.map((country) => country.continent)),
+  ].sort();
+
+  if (loading) {
+    return (
       <div
-        className={`h-10 w-10 animate-spin rounded-full border-4 ${
-          darkMode
-            ? "border-gray-700 border-t-white"
-            : "border-gray-200 border-t-gray-900"
+        className={`flex min-h-screen flex-col items-center justify-center gap-4 px-4 ${
+          darkMode ? "bg-black text-white" : "bg-white text-gray-900"
         }`}
-        role="status"
-        aria-label="Loading countries"
-      />
+        aria-busy="true"
+      >
+        <div
+          className={`h-10 w-10 animate-spin rounded-full border-4 ${
+            darkMode
+              ? "border-gray-700 border-t-white"
+              : "border-gray-200 border-t-gray-900"
+          }`}
+          role="status"
+          aria-label="Loading countries"
+        />
 
-      <p className="text-sm font-medium tracking-wide">
-        Loading countries…
-      </p>
-    </div>
-  );
-}
-
+        <p className="text-sm font-medium tracking-wide">Loading countries…</p>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -171,12 +197,12 @@ if (loading) {
               }`}
             >
               <option value="All">All continents</option>
-              <option value="Africa">Africa</option>
-              <option value="Asia">Asia</option>
-              <option value="Europe">Europe</option>
-              <option value="North America">North America</option>
-              <option value="South America">South America</option>
-              <option value="Oceania">Oceania</option>
+
+              {continents.map((continent) => (
+                <option key={continent} value={continent}>
+                  {continent}
+                </option>
+              ))}
             </select>
           </div>
 
